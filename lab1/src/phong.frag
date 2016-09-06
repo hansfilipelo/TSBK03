@@ -13,7 +13,7 @@ in vec3 exSurface; // Phong (specular)
 
 void main(void)
 {
-	const vec3 light = vec3(0.58, 0.58, 0.58); // Given in VIEW coordinates! You usually specify light sources in world coordinates.
+	const vec3 light = normalize(vec3(0.58, 0.58, 0.58)); // Given in VIEW coordinates! You usually specify light sources in world coordinates.
 	float diffuse, specular, shade;
 	
 	// Diffuse
@@ -27,6 +27,6 @@ void main(void)
 	if (specular > 0.0)
 		specular = 1.0 * pow(specular, 150.0);
 	specular = max(specular, 0.0);
-	shade = 0.7*diffuse + 1.0*specular;
+	shade = 1.0*diffuse + 13.0*specular;
 	outColor = vec4(shade, shade, shade, 1.0);
 }

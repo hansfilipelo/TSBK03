@@ -15,12 +15,12 @@
 #include <stdlib.h>
 
 #ifdef __APPLE__
-	#include <OpenGL/gl3.h>
-	#include "../../common/mac/MicroGlut.h"
-	//uses framework Cocoa
+    #include <OpenGL/gl3.h>
+    #include "../../common/mac/MicroGlut.h"
+    //uses framework Cocoa
 #else
-	#include <GL/gl.h>
-	#include "../../common/Linux/MicroGlut.h"
+    #include <GL/gl.h>
+    #include "../../common/Linux/MicroGlut.h"
 #endif
 #include "../../common/GL_utilities.h"
 #include "../../common/VectorUtils3.h"
@@ -38,6 +38,9 @@ mat4 objectExampleMatrix = {{ 1.0, 0.0, 0.0, 0.0,
                               0.0, 1.0, 0.0, 0.0,
                               0.0, 0.0, 1.0, 0.0,
                               0.0, 0.0, 0.0, 1.0}};
+float t = 0;
+mat4 rotationMatrix;
+lightSource = {0.2, 0.6, 0.4, 1, 10, 10, 10};
 // World-to-view matrix. Usually set by lookAt() or similar.
 mat4 viewMatrix;
 // Projection matrix, set by a call to perspective().
@@ -53,17 +56,17 @@ GLuint texture;
 
 void init(void)
 {
-	dumpInfo();
+    dumpInfo();
 
-	// GL inits
-	glClearColor(0.2,0.2,0.5,0);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	printError("GL inits");
+    // GL inits
+    glClearColor(0.2,0.2,0.5,0);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    printError("GL inits");
 
-	projectionMatrix = perspective(90, 1.0, 0.1, 1000);
-	viewMatrix = lookAt(0,0,1.5, 0,0,0, 0,1,0);
+    projectionMatrix = perspective(90, 1.0, 0.1, 1000);
+    viewMatrix = lookAt(0,0,1.5, 0,0,0, 0,1,0);
 
     // Load and compile shader
     char* vertex_shader = malloc(MAX_FILE_SIZE);
@@ -85,48 +88,58 @@ void init(void)
     program = loadShaders(vertex_shader, fragment_shader); // These are the programs that run on GPU
     printError("init shader");
 
-	
-	// Upload geometry to the GPU:
-	bunny = LoadModelPlus("objects/stanford-bunny.obj");
-	printError("load models");
+    
+    // Upload geometry to the GPU:
+    bunny = LoadModelPlus("objects/stanford-bunny.obj");
+    printError("load models");
 
-	// Load textures
-	LoadTGATextureSimple("textures/maskros512.tga",&texture);
-	printError("load textures");
+    // Load textures
+    LoadTGATextureSimple("textures/maskros512.tga",&texture);
+    printError("load textures");
 }
 
 
 void display(void)
 {
-	printError("pre display");
+    printError("pre display");
 
-	// clear the screen
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    // clear the screen
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    
+    // Rotate
+    if ( t < 2*3.14){
+        t += 0.1;
+    }
+    else {
+        t = 0;
+    }
+    rotationMatrix = Ry(t);
+    
+    
+    //activate the program, and set its variables
+    glUseProgram(program);
+    glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix.m);
+    mat4 m = Mult(viewMatrix, Mult(objectExampleMatrix, rotationMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(program, "viewMatrix"), 1, GL_TRUE, m.m);
 
-	//activate the program, and set its variables
-	glUseProgram(program);
-	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	mat4 m = Mult(viewMatrix, objectExampleMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(program, "viewMatrix"), 1, GL_TRUE, m.m);
-
-	//draw the model
-	DrawModel(bunny, program, "in_Position", "in_Normal", NULL);
-	
-	printError("display");
-	
-	glutSwapBuffers();
+    //draw the model
+    DrawModel(bunny, program, "in_Position", "in_Normal", NULL);
+    
+    printError("display");
+    
+    glutSwapBuffers();
 }
 
 int main(int argc, char *argv[])
 {
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA|GLUT_DEPTH|GLUT_DOUBLE);
-	glutInitContextVersion(3, 2);
-	glutCreateWindow ("Lab 0 - OpenGL 3.2+ Introduction");
-	glutDisplayFunc(display); 
-	glutRepeatingTimer(20);
-	init ();
-	glutMainLoop();
-	exit(0);
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGBA|GLUT_DEPTH|GLUT_DOUBLE);
+    glutInitContextVersion(3, 2);
+    glutCreateWindow ("Lab 0 - OpenGL 3.2+ Introduction");
+    glutDisplayFunc(display); 
+    glutRepeatingTimer(20);
+    init ();
+    glutMainLoop();
+    exit(0);
 }
 

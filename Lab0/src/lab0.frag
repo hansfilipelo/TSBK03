@@ -9,6 +9,8 @@
 in float shade;
 
 out vec4 out_Color;
+uniform vec4 light;
+uniform vec3 light_pos;
 
 void main(void)
 {

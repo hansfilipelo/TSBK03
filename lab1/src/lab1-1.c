@@ -65,9 +65,10 @@ Model* squareModel;
 //----------------------Globals-------------------------------------------------
 Point3D cam, point;
 Model *model1;
-FBOstruct *fbo1, *fbo2;
+FBOstruct *fbo1, *fbo2, *fbo3;
 GLuint phongshader = 0, plaintextureshader = 0;
 GLuint lowpass_x = 0, lowpass_y = 0;
+GLuint threshold = 0;
 
 //-------------------------------------------------------------------------------------
 
@@ -88,11 +89,13 @@ void init(void)
     // Low pass filter shader
     lowpass_x = loadShaders("src/lowpass_x.vert", "src/lowpass_x.frag");  // puts texture on teapot
     lowpass_y = loadShaders("src/lowpass_y.vert", "src/lowpass_y.frag");  // puts texture on teapot
+    threshold = loadShaders("src/threshold.vert", "src/threshold.frag");  // puts texture on teapot
 
     printError("init shader");
 
     fbo1 = initFBO(W, H, 0);
     fbo2 = initFBO(W, H, 0);
+    fbo3 = initFBO(W, H, 0);
 
     // load the model
 //  model1 = LoadModelPlus("teapot.obj");
@@ -156,10 +159,24 @@ void display(void)
     // Done rendering the FBO! Set up for rendering on screen, using the result as texture!
 
 //  glFlush(); // Can cause flickering on some systems. Can also be necessary to make drawing complete.
+    // -----------------------
+    // Bloom filter
     useFBO(fbo2, fbo1, 0L);
     glClearColor(0.0, 0.0, 0.0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Activate second shader program
+    glUseProgram(threshold);
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    DrawModel(squareModel, threshold, "in_Position", NULL, "in_TexCoord");
+    // -----------------------
+    
+    useFBO(fbo3, fbo2, 0L);
+    glClearColor(0.0, 0.0, 0.0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     // Activate second shader program
     glUseProgram(lowpass_x);
 
@@ -168,7 +185,7 @@ void display(void)
     DrawModel(squareModel, lowpass_x, "in_Position", NULL, "in_TexCoord");
     
     // Blur y-wise
-    useFBO(0L, fbo2, 0L);
+    useFBO(0L, fbo3, 0L);
     glClearColor(0.0, 0.0, 0.0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

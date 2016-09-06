@@ -1,11 +1,11 @@
 #version 150
 
-#define radius 5
+#define radius 21
 
 in vec2 outTexCoord;
 uniform sampler2D texUnit;
 out vec4 out_Color;
-float weights[radius] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+float weights[radius] = float[] (0.057138, 0.056559, 0.054856, 0.052132, 0.048544, 0.044292, 0.039597, 0.034685, 0.02977, 0.025037, 0.020631, 0.016658, 0.013178, 0.010216, 0.007759, 0.005774, 0.004211, 0.003009, 0.002106, 0.001445, 0.000971);
 
 void main(void)
 {

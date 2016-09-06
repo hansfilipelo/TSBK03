@@ -69,6 +69,7 @@ FBOstruct *fbo1, *fbo2, *fbo3;
 GLuint phongshader = 0, plaintextureshader = 0;
 GLuint lowpass_x = 0, lowpass_y = 0;
 GLuint threshold = 0;
+GLuint merger = 0;
 
 //-------------------------------------------------------------------------------------
 
@@ -90,6 +91,7 @@ void init(void)
     lowpass_x = loadShaders("src/lowpass_x.vert", "src/lowpass_x.frag");  // puts texture on teapot
     lowpass_y = loadShaders("src/lowpass_y.vert", "src/lowpass_y.frag");  // puts texture on teapot
     threshold = loadShaders("src/threshold.vert", "src/threshold.frag");  // puts texture on teapot
+    merger = loadShaders("src/merger.vert", "src/merger.frag");  // puts texture on teapot
 
     printError("init shader");
 
@@ -173,6 +175,7 @@ void display(void)
     DrawModel(squareModel, threshold, "in_Position", NULL, "in_TexCoord");
     // -----------------------
     
+    // Blur x-wise
     useFBO(fbo3, fbo2, 0L);
     glClearColor(0.0, 0.0, 0.0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -185,7 +188,7 @@ void display(void)
     DrawModel(squareModel, lowpass_x, "in_Position", NULL, "in_TexCoord");
     
     // Blur y-wise
-    useFBO(0L, fbo3, 0L);
+    useFBO(fbo2, fbo3, 0L);
     glClearColor(0.0, 0.0, 0.0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -196,6 +199,18 @@ void display(void)
     glDisable(GL_DEPTH_TEST);
     DrawModel(squareModel, lowpass_y, "in_Position", NULL, "in_TexCoord");
 
+    // Stitch images together
+    useFBO(0L, fbo1, fbo2);
+    glClearColor(0.0, 0.0, 0.0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Activate second shader program
+    glUseProgram(merger);
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    DrawModel(squareModel, merger, "in_Position", NULL, "in_TexCoord");
+    
     glutSwapBuffers();
 }
 

@@ -21,8 +21,15 @@ void main(void)
     float dt = dFdy(texture(texUnit, outTexCoord).r);
 
     vec3 normal = normalize(out_Normal);
-    normal -= ds*Ps + dt*Pt;
-    normal = normalize(normal);
+    mat3 Mvt = transpose(mat3(Ps, Pt, normal));
+    normal = vec3(-ds, -dt, 1);
+    light = Mvt*light;
+
+    //vec3 normal = normalize(out_Normal);
+    //normal -= ds*Ps + dt*Pt;
+    //normal = normalize(normal);
+
+
     // Simplified lighting calculation.
     // A full solution would include material, ambient, specular, light sources, multiply by texture.
     out_Color = vec4( dot(normal, light));// * texture(texUnit, outTexCoord);

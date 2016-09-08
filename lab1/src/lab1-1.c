@@ -26,7 +26,7 @@
 // Linux
         #include <stdio.h>
         #include <GL/gl.h>
-        #include "../../common/mac/MicroGlut.h"
+        #include "../../common/Linux/MicroGlut.h"
 //      #include <GL/glut.h>
     #endif
 #endif
@@ -125,7 +125,7 @@ void OnTimer(int value)
 void display(void)
 {
     mat4 vm2;
-    
+
     // This function is called whenever it is time to render
     //  a new frame; due to the idle()-function below, this
     //  function will get called several times per second
@@ -174,19 +174,19 @@ void display(void)
     glDisable(GL_DEPTH_TEST);
     DrawModel(squareModel, threshold, "in_Position", NULL, "in_TexCoord");
     // -----------------------
-    
+
     // Blur x-wise
     useFBO(fbo3, fbo2, 0L);
     glClearColor(0.0, 0.0, 0.0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
     // Activate second shader program
     glUseProgram(lowpass_x);
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     DrawModel(squareModel, lowpass_x, "in_Position", NULL, "in_TexCoord");
-    
+
     // Blur y-wise
     useFBO(fbo2, fbo3, 0L);
     glClearColor(0.0, 0.0, 0.0, 0);
@@ -199,18 +199,20 @@ void display(void)
     glDisable(GL_DEPTH_TEST);
     DrawModel(squareModel, lowpass_y, "in_Position", NULL, "in_TexCoord");
 
+    // Activate merger shader program
+    glUseProgram(merger);
+
     // Stitch images together
     useFBO(0L, fbo1, fbo2);
     glClearColor(0.0, 0.0, 0.0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Activate second shader program
-    glUseProgram(merger);
+    glUniform1i(glGetUniformLocation(merger, "glow"), 1);
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     DrawModel(squareModel, merger, "in_Position", NULL, "in_TexCoord");
-    
+
     glutSwapBuffers();
 }
 
@@ -248,4 +250,3 @@ int main(int argc, char *argv[])
     glutMainLoop();
     exit(0);
 }
-

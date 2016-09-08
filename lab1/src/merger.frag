@@ -7,5 +7,5 @@ out vec4 out_Color;
 
 void main(void)
 {
-    out_Color = 1*texture(image, outTexCoord) + 0.5*texture(glow, outTexCoord);
+    out_Color = 1*texture(image, outTexCoord) + 4*texture(glow, outTexCoord);
 }

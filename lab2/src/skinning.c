@@ -193,13 +193,6 @@ void setupBones(void)
 // Desc:    deformera cylindermeshen enligt skelettet
 void DeformCylinder()
 {
-    mat4 M_b1 = InvertMat4(Mult(T(g_bones_orig[0].pos.x, g_bones_orig[0].pos.y, g_bones_orig[0].pos.z), g_bones_orig[0].rot));
-    mat4 M_b2 = InvertMat4(Mult(T(g_bones_orig[1].pos.x, g_bones_orig[1].pos.y, g_bones_orig[1].pos.z), g_bones_orig[1].rot));
-    mat4 Mprim_b1 = Mult(T(g_bones[0].pos.x, g_bones[0].pos.y, g_bones[0].pos.z), g_bones[0].rot);
-    mat4 Mprim_b2 = Mult(T(g_bones[1].pos.x, g_bones[1].pos.y, g_bones[1].pos.z), g_bones[1].rot);
-    mat4 M_1 = Mult(Mprim_b1, M_b1);
-    mat4 M_2 = Mult(Mult(Mprim_b1, Mprim_b2),  Mult(M_b2, M_b1));
-
     // Point3D v1, v2;
     int row, corner;
 
@@ -223,7 +216,7 @@ void DeformCylinder()
             // row traverserar i cylinderns längdriktning,
             // corner traverserar "runt" cylindern
 
-            g_vertsRes[row][corner] = VectorAdd(ScalarMult(MultVec3(M_1, g_vertsOrg[row][corner]), (1-weight[row])),  ScalarMult(MultVec3(M_2, g_vertsOrg[row][corner]),  weight[row]));
+            //g_vertsRes[row][corner] = VectorAdd(ScalarMult(MultVec3(M_1, g_vertsOrg[row][corner]), (1-weight[row])),  ScalarMult(MultVec3(M_2, g_vertsOrg[row][corner]),  weight[row]));
 
 
             // ---=========     Uppgift 2: Soft skinning i CPU ===========------
@@ -277,6 +270,21 @@ void setBoneLocation(void)
     // till vertexshadern
 }
 
+void setBoneTransform(void)
+{
+    mat4 M_b1 = InvertMat4(Mult(T(g_bones_orig[0].pos.x, g_bones_orig[0].pos.y, g_bones_orig[0].pos.z), g_bones_orig[0].rot));
+    mat4 M_b2 = InvertMat4(Mult(T(g_bones_orig[1].pos.x, g_bones_orig[1].pos.y, g_bones_orig[1].pos.z), g_bones_orig[1].rot));
+    mat4 Mprim_b1 = Mult(T(g_bones[0].pos.x, g_bones[0].pos.y, g_bones[0].pos.z), g_bones[0].rot);
+    mat4 Mprim_b2 = Mult(T(g_bones[1].pos.x, g_bones[1].pos.y, g_bones[1].pos.z), g_bones[1].rot);
+    mat4 M_1 = Mult(Mprim_b1, M_b1);
+    mat4 M_2 = Mult(Mult(Mprim_b1, Mprim_b2),  Mult(M_b2, M_b1));
+
+    glUniformMatrix4fv(glGetUniformLocation(g_shader, "M_1"), 1, GL_TRUE, M_1.m);
+    glUniformMatrix4fv(glGetUniformLocation(g_shader, "M_2"), 1, GL_TRUE, M_2.m);
+
+}
+
+
 
 ///////////////////////////////////////////////
 //       D R A W    C Y L I N D E R
@@ -293,6 +301,7 @@ void DrawCylinder()
 
     setBoneLocation();
     setBoneRotation();
+    setBoneTransform();
 
 // update cylinder vertices:
     glBindVertexArray(cylinderModel->vao);

@@ -66,7 +66,7 @@ Point3D g_normalsRes[kMaxRow][kMaxCorners];
 // vertex attributes sent to OpenGL
 Point3D g_boneWeights[kMaxRow][kMaxCorners];
 
-float weight[kMaxRow] = {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+float weight[kMaxRow] = {0.0, 0.0, 0.05, 0.25, 0.45, 0.55, 0.75, 0.95, 1.0, 1.0};
 
 Model *cylinderModel; // Collects all the above for drawing with glDrawElements
 
@@ -236,7 +236,6 @@ void DeformCylinder()
             // g_boneWeights innehåller blendvikter för benen.
             // g_vertsOrg innehåller ursprunglig vertexdata.
             // g_vertsRes innehåller den vertexdata som skickas till OpenGL.
-
         }
     }
 }

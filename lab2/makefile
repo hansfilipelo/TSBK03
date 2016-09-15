@@ -1,7 +1,7 @@
 UNAME_S=$(shell uname -s)
 SRC_FOLDER=src
 
-EXEC=skinning
+EXEC=skinning2
 SOURCES = $(SRC_FOLDER)/$(EXEC).c $(wildcard ../common/*.c)
 OBJS = $(SOURCES:.c=.o)
 

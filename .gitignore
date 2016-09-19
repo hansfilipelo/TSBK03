@@ -39,3 +39,6 @@
 ehtthumbs.db
 Thumbs.db
 
+# Ycm for vim
+.ycm_extra_conf.py
+

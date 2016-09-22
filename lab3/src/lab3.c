@@ -103,7 +103,7 @@ Material ballMt = { { 1.0, 1.0, 1.0, 1.0 }, { 1.0, 1.0, 1.0, 0.0 },
                 };
 
 
-enum {kNumBalls = 16}; // Change as desired, max 16
+enum {kNumBalls = 4}; // Change as desired, max 16
 
 //------------------------------Globals---------------------------------
 ModelTexturePair tableAndLegs, tableSurf;
@@ -183,10 +183,37 @@ void updateWorld()
     }
 
     // Detect collisions, calculate speed differences, apply forces
+    float distance;
+    vec3 n_hat;
+    float v_rel;
+    float elastic = 1;
     for (i = 0; i < kNumBalls; i++)
         for (j = i+1; j < kNumBalls; j++)
         {
             // YOUR CODE HERE
+            n_hat = VectorSub(ball[j].X, ball[i].X);
+            distance = Norm(n_hat);
+            n_hat = Normalize(n_hat);
+            if ( distance <= 2*kBallSize ) {
+                //vec3 v_i = ScalarMult(ball[i].P, 1/ball[i].mass);
+                //vec3 v_j = ScalarMult(ball[j].P, 1/ball[j].mass);
+                vec3 v_ip = VectorAdd(ball[i].v, CrossProduct(ball[i].omega, ScalarMult(n_hat, kBallSize)));
+                vec3 v_jp = VectorAdd(ball[j].v, CrossProduct(ball[j].omega, ScalarMult(n_hat, -kBallSize)));
+
+
+                v_rel = DotProduct(VectorSub(ball[j].v, ball[i].v), n_hat);
+                
+                float impulse = -(1.0 + elastic)*v_rel/((1.0/ball[i].mass) + (1.0/ball[j].mass));
+                
+                //v_i = VectorAdd(v_i, ScalarMult(n_hat, impulse/ball[i].mass));
+                //v_j = VectorSub(v_j, ScalarMult(n_hat, impulse/ball[j].mass));
+                
+                ball[i].F = VectorAdd(ball[i].F, ScalarMult(n_hat, -impulse/deltaT));
+                ball[j].F = VectorAdd(ball[j].F, ScalarMult(n_hat, impulse/deltaT));
+
+                ball[i].X = VectorAdd(ball[i].X, ScalarMult(n_hat, -(2*kBallSize-distance)/2-0.05));
+                ball[j].X = VectorAdd(ball[j].X, ScalarMult(n_hat, (2*kBallSize-distance)/2+0.05));
+            }
         }
 
     // Control rotation here to reflect
@@ -208,12 +235,11 @@ void updateWorld()
 //        mat3 R3 = mat4tomat3(ball[i].R);
 //        ball[i].omega = MultMat3Vec3(MultMat3(MultMat3(R3, ball[i].Ji), TransposeMat3(R3)), ball[i].L);
 
-        //ball[i].omega = MultMat3Vec3(ball[i].Ji, ball[i].L);
-        v = ScalarMult(ball[i].P, 1/ball[i].mass);
-        ball[i].omega = ScalarMult(CrossProduct((vec3){0, kBallSize, 0}, v), 1/pow(kBallSize,2));
+        ball[i].omega = MultMat3Vec3(ball[i].Ji, ball[i].L);
 
 //      v := P * 1/mass
         ball[i].v = ScalarMult(ball[i].P, 1.0/(ball[i].mass));
+        ball[i].omega = ScalarMult(CrossProduct((vec3){0, kBallSize, 0}, ball[i].v), 1/pow(kBallSize,2));
 //      X := X + v*dT
         dX = ScalarMult(ball[i].v, deltaT); // dX := v*dT
         ball[i].X = VectorAdd(ball[i].X, dX); // X := X + dX
@@ -327,17 +353,18 @@ void init()
     ball[1].X = SetVector(0, 0, 0.5);
     ball[2].X = SetVector(0.0, 0, 1.0);
     ball[3].X = SetVector(0, 0, 1.5);
-    ball[0].P = SetVector(0, 0, 0);
-    ball[1].P = SetVector(0, 0, 0);
-    ball[2].P = SetVector(0, 0, 0);
+    ball[0].P = SetVector(5, 0, 5);
+    ball[1].P = SetVector(0.3, 0, 0.3);
+    ball[2].P = SetVector(0.5, 0, 0.2);
     ball[3].P = SetVector(0, 0, 1.00);
+    ball[0].mass = 5.0;
 
-    vec3 v;
-    for (i = 0; i < kNumBalls; i++ ){
-        v = ScalarMult(ball[i].P, 1/ball[i].mass);
-        ball[i].omega = ScalarMult(CrossProduct((vec3){0, kBallSize, 0}, v), 1/pow(kBallSize,2));
-        ball[i].L = MultMat3Vec3(InvertMat3(ball[i].Ji), ball[i].omega);
-    }
+    //vec3 v;
+    //for (i = 0; i < kNumBalls; i++ ){
+    //    v = ScalarMult(ball[i].P, 1/ball[i].mass);
+    //    ball[i].omega = ScalarMult(CrossProduct((vec3){0, kBallSize, 0}, v), 1/pow(kBallSize,2));
+    //    ball[i].L = MultMat3Vec3(InvertMat3(ball[i].Ji), ball[i].omega);
+    //}
 
     cam = SetVector(0, 2, 2);
     point = SetVector(0, 0, 0);

@@ -197,6 +197,7 @@ void updateWorld()
     }
 
 // Update state, follows the book closely
+    vec3 v;
     for (i = 0; i < kNumBalls; i++)
     {
         vec3 dX, dP, dL, dO;
@@ -207,7 +208,9 @@ void updateWorld()
 //        mat3 R3 = mat4tomat3(ball[i].R);
 //        ball[i].omega = MultMat3Vec3(MultMat3(MultMat3(R3, ball[i].Ji), TransposeMat3(R3)), ball[i].L);
 
-        ball[i].omega = MultMat3Vec3(ball[i].Ji, ball[i].L);
+        //ball[i].omega = MultMat3Vec3(ball[i].Ji, ball[i].L);
+        v = ScalarMult(ball[i].P, 1/ball[i].mass);
+        ball[i].omega = ScalarMult(CrossProduct((vec3){0, kBallSize, 0}, v), 1/pow(kBallSize,2));
 
 //      v := P * 1/mass
         ball[i].v = ScalarMult(ball[i].P, 1.0/(ball[i].mass));
@@ -315,12 +318,11 @@ void init()
             //80, 0, 0,
             //0, 80, 0,
             //0, 0, 80
-            5.0/(2.0*ball[i].mass*pow(kBallSize/2.0, 2)), 0.0, 0.0,
-            0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize/2.0, 2)), 0.0,
-            0.0, 0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize/2.0, 2))
+            5.0/(2.0*ball[i].mass*pow(kBallSize, 2)), 0.0, 0.0,
+            0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize, 2)), 0.0,
+            0.0, 0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize, 2))
         };
     }
-    printf("%f\n", ball[10].Ji.m[4]);
     ball[0].X = SetVector(0, 0, 0);
     ball[1].X = SetVector(0, 0, 0.5);
     ball[2].X = SetVector(0.0, 0, 1.0);
@@ -329,6 +331,13 @@ void init()
     ball[1].P = SetVector(0, 0, 0);
     ball[2].P = SetVector(0, 0, 0);
     ball[3].P = SetVector(0, 0, 1.00);
+
+    vec3 v;
+    for (i = 0; i < kNumBalls; i++ ){
+        v = ScalarMult(ball[i].P, 1/ball[i].mass);
+        ball[i].omega = ScalarMult(CrossProduct((vec3){0, kBallSize, 0}, v), 1/pow(kBallSize,2));
+        ball[i].L = MultMat3Vec3(InvertMat3(ball[i].Ji), ball[i].omega);
+    }
 
     cam = SetVector(0, 2, 2);
     point = SetVector(0, 0, 0);

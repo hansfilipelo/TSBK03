@@ -218,9 +218,22 @@ void updateWorld()
 
     // Control rotation here to reflect
     // friction against floor, simplified as well as more correct
+    float epsilon = 0.01;
+    float mu_k = 0.2;
+    float mu_r = 0.5;
     for (i = 0; i < kNumBalls; i++)
     {
         // YOUR CODE HERE
+        vec3 v_ground = VectorAdd(ball[i].v, CrossProduct(ball[i].omega, (vec3){0,-kBallSize,0}));
+        vec3 Ff;
+
+        if ( Norm(v_ground) > 0+epsilon ) {
+            Ff = ScalarMult(Normalize(ball[i].v), -mu_k*9.82*ball[i].mass);
+        }
+        else {
+            Ff = ScalarMult(Normalize(ball[i].v), -mu_r*9.82*ball[i].mass);
+        }
+        ball[i].T = CrossProduct((vec3){0,-kBallSize,0}, Ff);
     }
 
 // Update state, follows the book closely
@@ -353,11 +366,10 @@ void init()
     ball[1].X = SetVector(0, 0, 0.5);
     ball[2].X = SetVector(0.0, 0, 1.0);
     ball[3].X = SetVector(0, 0, 1.5);
-    ball[0].P = SetVector(5, 0, 5);
+    ball[0].P = SetVector(2, 0, 2);
     ball[1].P = SetVector(0.3, 0, 0.3);
     ball[2].P = SetVector(0.5, 0, 0.2);
     ball[3].P = SetVector(0, 0, 1.00);
-    ball[0].mass = 5.0;
 
     //vec3 v;
     //for (i = 0; i < kNumBalls; i++ ){

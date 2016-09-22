@@ -3,7 +3,7 @@
 // 2012: Ported to OpenGL 3.2 by Justina Mickonyt‘ and Ingemar R.
 // 2013: Adapted to VectorUtils3 and MicroGlut.
 
-// gcc lab3.c ../common/*.c -lGL -o lab3 -I../common 
+// gcc lab3.c ../common/*.c -lGL -o lab3 -I../common
 
 // Includes vary a bit with platforms.
 // MS Windows needs GLEW or glee.
@@ -12,12 +12,12 @@
 #include <math.h>
 #include <stdlib.h>
 #ifdef __APPLE__
-	#include <OpenGL/gl3.h>
-	#include "../../common/mac/MicroGlut.h"
-	// uses framework Cocoa
+    #include <OpenGL/gl3.h>
+    #include "../../common/mac/MicroGlut.h"
+    // uses framework Cocoa
 #else
-	#include "../../common/Linux/MicroGlut.h" // #include <GL/glut.h>
-	#include <GL/gl.h>
+    #include "../../common/Linux/MicroGlut.h" // #include <GL/glut.h>
+    #include <GL/gl.h>
 #endif
 
 #include <sys/time.h>
@@ -77,7 +77,7 @@ typedef struct
 
   vec3 F, T; // accumulated force and torque
 
-//  mat4 J, Ji; We could have these but we can live without them for spheres.
+  mat3 Ji;
   vec3 omega; // Angular momentum
   vec3 v; // Change in velocity
 
@@ -130,7 +130,7 @@ vec3 lightSourcesDirectionsPositions[] = { {0.0, 10.0, 0.0} };
 //----------------------------------Utility functions-----------------------------------
 
 void loadModelTexturePair(ModelTexturePair* modelTexturePair,
-			  char* model, char* texture)
+              char* model, char* texture)
 {
   modelTexturePair->model = LoadModelPlus(model); // , shader, "in_Position", "in_Normal", "in_TexCoord");
   if (texture)
@@ -161,69 +161,73 @@ void loadMaterial(Material mt)
 //---------------------------------- physics update and billiard table rendering ----------------------------------
 void updateWorld()
 {
-	// Zero forces
-	int i, j;
-	for (i = 0; i < kNumBalls; i++)
-	{
-		ball[i].F = SetVector(0,0,0);
-		ball[i].T = SetVector(0,0,0);
-	}
+    // Zero forces
+    int i, j;
+    for (i = 0; i < kNumBalls; i++)
+    {
+        ball[i].F = SetVector(0,0,0);
+        ball[i].T = SetVector(0,0,0);
+    }
 
-	// Wall tests
-	for (i = 0; i < kNumBalls; i++)
-	{
-		if (ball[i].X.x < -0.82266270 + kBallSize)
-			ball[i].P.x = abs(ball[i].P.x);
-		if (ball[i].X.x > 0.82266270 - kBallSize)
-			ball[i].P.x = -abs(ball[i].P.x);
-		if (ball[i].X.z < -1.84146270 + kBallSize)
-			ball[i].P.z = abs(ball[i].P.z);
-		if (ball[i].X.z > 1.84146270 - kBallSize)
-			ball[i].P.z = -abs(ball[i].P.z);
-	}
+    // Wall tests
+    for (i = 0; i < kNumBalls; i++)
+    {
+        if (ball[i].X.x < -0.82266270 + kBallSize)
+            ball[i].P.x = abs(ball[i].P.x);
+        if (ball[i].X.x > 0.82266270 - kBallSize)
+            ball[i].P.x = -abs(ball[i].P.x);
+        if (ball[i].X.z < -1.84146270 + kBallSize)
+            ball[i].P.z = abs(ball[i].P.z);
+        if (ball[i].X.z > 1.84146270 - kBallSize)
+            ball[i].P.z = -abs(ball[i].P.z);
+    }
 
-	// Detect collisions, calculate speed differences, apply forces
-	for (i = 0; i < kNumBalls; i++)
+    // Detect collisions, calculate speed differences, apply forces
+    for (i = 0; i < kNumBalls; i++)
         for (j = i+1; j < kNumBalls; j++)
         {
             // YOUR CODE HERE
         }
 
-	// Control rotation here to reflect
-	// friction against floor, simplified as well as more correct
-	for (i = 0; i < kNumBalls; i++)
-	{
-		// YOUR CODE HERE
-	}
+    // Control rotation here to reflect
+    // friction against floor, simplified as well as more correct
+    for (i = 0; i < kNumBalls; i++)
+    {
+        // YOUR CODE HERE
+    }
 
 // Update state, follows the book closely
-	for (i = 0; i < kNumBalls; i++)
-	{
-		vec3 dX, dP, dL, dO;
-		mat4 Rd;
+    for (i = 0; i < kNumBalls; i++)
+    {
+        vec3 dX, dP, dL, dO;
+        mat4 Rd;
 
-		// Note: omega is not set. How do you calculate it?
-		// YOUR CODE HERE
+        // Note: omega is not set. How do you calculate it?
+        // YOUR CODE HERE
+//        mat3 R3 = mat4tomat3(ball[i].R);
+//        ball[i].omega = MultMat3Vec3(MultMat3(MultMat3(R3, ball[i].Ji), TransposeMat3(R3)), ball[i].L);
 
-//		v := P * 1/mass
-		ball[i].v = ScalarMult(ball[i].P, 1.0/(ball[i].mass));
-//		X := X + v*dT
-		dX = ScalarMult(ball[i].v, deltaT); // dX := v*dT
-		ball[i].X = VectorAdd(ball[i].X, dX); // X := X + dX
-//		R := R + Rd*dT
-		dO = ScalarMult(ball[i].omega, deltaT); // dO := omega*dT
-		Rd = CrossMatrix(dO); // Calc dO, add to R
-		Rd = Mult(Rd, ball[i].R); // Rotate the diff (NOTE: This was missing in early versions.)
-		ball[i].R = MatrixAdd(ball[i].R, Rd);
-//		P := P + F * dT
-		dP = ScalarMult(ball[i].F, deltaT); // dP := F*dT
-		ball[i].P = VectorAdd(ball[i].P, dP); // P := P + dP
-//		L := L + t * dT
-		dL = ScalarMult(ball[i].T, deltaT); // dL := T*dT
-		ball[i].L = VectorAdd(ball[i].L, dL); // L := L + dL
+        ball[i].omega = MultMat3Vec3(ball[i].Ji, ball[i].L);
 
-		OrthoNormalizeMatrix(&ball[i].R);
-	}
+//      v := P * 1/mass
+        ball[i].v = ScalarMult(ball[i].P, 1.0/(ball[i].mass));
+//      X := X + v*dT
+        dX = ScalarMult(ball[i].v, deltaT); // dX := v*dT
+        ball[i].X = VectorAdd(ball[i].X, dX); // X := X + dX
+//      R := R + Rd*dT
+        dO = ScalarMult(ball[i].omega, deltaT); // dO := omega*dT
+        Rd = CrossMatrix(dO); // Calc dO, add to R
+        Rd = Mult(Rd, ball[i].R); // Rotate the diff (NOTE: This was missing in early versions.)
+        ball[i].R = MatrixAdd(ball[i].R, Rd);
+//      P := P + F * dT
+        dP = ScalarMult(ball[i].F, deltaT); // dP := F*dT
+        ball[i].P = VectorAdd(ball[i].P, dP); // P := P + dP
+//      L := L + t * dT
+        dL = ScalarMult(ball[i].T, deltaT); // dL := T*dT
+        ball[i].L = VectorAdd(ball[i].L, dL); // L := L + dL
+
+        OrthoNormalizeMatrix(&ball[i].R);
+    }
 }
 
 void renderBall(int ballNr)
@@ -265,18 +269,18 @@ void renderTable()
 
 void init()
 {
-	dumpInfo();  // shader info
+    dumpInfo();  // shader info
 
-	// GL inits
-	glClearColor(0.1, 0.1, 0.3, 0);
-	glClearDepth(1.0);
+    // GL inits
+    glClearColor(0.1, 0.1, 0.3, 0);
+    glClearDepth(1.0);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     printError("GL inits");
 
@@ -298,24 +302,33 @@ void init()
         sprintf(textureStr, "objects/balls/%d.tga", i);
         LoadTGATextureSimple(textureStr, &ball[i].tex);
     }
-	free(textureStr);
+    free(textureStr);
 
     // Initialize ball data, positions etc
-	for (i = 0; i < kNumBalls; i++)
-	{
-		ball[i].mass = 1.0;
-		ball[i].X = SetVector(0.0, 0.0, 0.0);
-		ball[i].P = SetVector(((float)(i % 13))/ 50.0, 0.0, ((float)(i % 15))/50.0);
-		ball[i].R = IdentityMatrix();
-	}
-	ball[0].X = SetVector(0, 0, 0);
-	ball[1].X = SetVector(0, 0, 0.5);
-	ball[2].X = SetVector(0.0, 0, 1.0);
-	ball[3].X = SetVector(0, 0, 1.5);
-	ball[0].P = SetVector(0, 0, 0);
-	ball[1].P = SetVector(0, 0, 0);
-	ball[2].P = SetVector(0, 0, 0);
-	ball[3].P = SetVector(0, 0, 1.00);
+    for (i = 0; i < kNumBalls; i++)
+    {
+        ball[i].mass = 1.0;
+        ball[i].X = SetVector(0.0, 0.0, 0.0);
+        ball[i].P = SetVector(((float)(i % 13))/ 50.0, 0.0, ((float)(i % 15))/50.0);
+        ball[i].R = IdentityMatrix();
+        ball[i].Ji = (mat3) {
+            //80, 0, 0,
+            //0, 80, 0,
+            //0, 0, 80
+            5.0/(2.0*ball[i].mass*pow(kBallSize/2.0, 2)), 0.0, 0.0,
+            0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize/2.0, 2)), 0.0,
+            0.0, 0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize/2.0, 2))
+        };
+    }
+    printf("%f\n", ball[10].Ji.m[4]);
+    ball[0].X = SetVector(0, 0, 0);
+    ball[1].X = SetVector(0, 0, 0.5);
+    ball[2].X = SetVector(0.0, 0, 1.0);
+    ball[3].X = SetVector(0, 0, 1.5);
+    ball[0].P = SetVector(0, 0, 0);
+    ball[1].P = SetVector(0, 0, 0);
+    ball[2].P = SetVector(0, 0, 0);
+    ball[3].P = SetVector(0, 0, 1.00);
 
     cam = SetVector(0, 2, 2);
     point = SetVector(0, 0, 0);
@@ -327,14 +340,14 @@ void init()
 //-------------------------------callback functions------------------------------------------
 void display(void)
 {
-	int i;
+    int i;
     // This function is called whenever it is time to render
     //  a new frame; due to the idle()-function below, this
     //  function will get called several times per second
     updateWorld();
 
     // Clear framebuffer & zbuffer
-	glClearColor(0.1, 0.1, 0.3, 0);
+    glClearColor(0.1, 0.1, 0.3, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //    int time = glutGet(GLUT_ELAPSED_TIME);
@@ -349,12 +362,12 @@ void display(void)
 
     renderTable();
 
-	for (i = 0; i < kNumBalls; i++)
+    for (i = 0; i < kNumBalls; i++)
         renderBall(i);
 
     printError("rendering");
 
-	glutSwapBuffers();
+    glutSwapBuffers();
 }
 
 void onTimer(int value)
@@ -367,8 +380,8 @@ void onTimer(int value)
 
 void reshape(GLsizei w, GLsizei h)
 {
-	lastw = w;
-	lasth = h;
+    lastw = w;
+    lasth = h;
 
     glViewport(0, 0, w, h);
     GLfloat ratio = (GLfloat) w / (GLfloat) h;
@@ -379,17 +392,17 @@ void reshape(GLsizei w, GLsizei h)
 //-----------------------------main-----------------------------------------------
 int main(int argc, char **argv)
 {
-	glutInit(&argc, argv);
+    glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize(W, H);
-	glutInitContextVersion(3, 2);
-	glutCreateWindow ("Biljardbordet");
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
+    glutInitContextVersion(3, 2);
+    glutCreateWindow ("Biljardbordet");
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
     glutTimerFunc(20, &onTimer, 0);
 
-	init();
+    init();
 
-	glutMainLoop();
-	exit(0);
+    glutMainLoop();
+    exit(0);
 }

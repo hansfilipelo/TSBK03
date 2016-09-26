@@ -19,6 +19,8 @@
 
 // LŠgg till egna globaler hŠr efter behov.
 
+float maxDistanceSq = 50;
+float cohesionWeight = 2;
 
 void SpriteBehavior() // Din kod!
 {
@@ -26,6 +28,42 @@ void SpriteBehavior() // Din kod!
 // koden i švrigt, men mycket kan samlas hŠr. Du kan utgŒ frŒn den
 // globala listroten, gSpriteRoot, fšr att kontrollera alla sprites
 // hastigheter och positioner, eller arbeta frŒn egna globaler.
+    
+    SpritePtr i = gSpriteRoot;
+    SpritePtr j;
+    
+    while (i != NULL){
+        unsigned count = 0;
+        j = gSpriteRoot;
+        i->speedDiff = (FPoint){0,0};
+        i->averagePosition = (FPoint){0,0};
+        i->avoidanceVector = (FPoint){0,0};
+
+        while (j != NULL){
+            //i->speedDiff.h = j->speed.h - i->speed.h;
+            //i->speedDiff.v = j->speed.v - i->speed.v;
+            if (i != j && pow(j->position.h - i->position.h, 2) + pow(j->position.v - i->position.v, 2) < maxDistanceSq ){
+                i->averagePosition.h += j->averagePosition.h;
+                i->averagePosition.v += j->averagePosition.v;
+                count += 1;
+            }
+
+            j = j->next;
+        }
+        
+        i = i->next;
+    }
+    
+    i = gSpriteRoot;
+    while ( i != NULL ){
+        i->speed.h += i->averagePosition.h*cohesionWeight;
+        i->speed.v += i->averagePosition.v*cohesionWeight;
+        i->position.h += i->speed.h;
+        i->position.v += i->speed.v;
+        i = i->next;
+    }
+
+
 }
 
 // Drawing routine

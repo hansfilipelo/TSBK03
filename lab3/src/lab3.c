@@ -218,9 +218,9 @@ void updateWorld()
 
     // Control rotation here to reflect
     // friction against floor, simplified as well as more correct
-    float epsilon = 0.01;
+    float epsilon = 0.00001;
     float mu_k = 0.2;
-    float mu_r = 0.5;
+    float mu_r = 0.98;
     for (i = 0; i < kNumBalls; i++)
     {
         // YOUR CODE HERE
@@ -231,6 +231,7 @@ void updateWorld()
             Ff = ScalarMult(Normalize(ball[i].v), -mu_k*9.82*ball[i].mass);
         }
         else {
+            //Ff = ScalarMult(CrossProduct((vec3){0,-kBallSize,0}, ball[i].L), mu_r);
             Ff = ScalarMult(Normalize(ball[i].v), -mu_r*9.82*ball[i].mass);
         }
         ball[i].T = CrossProduct((vec3){0,-kBallSize,0}, Ff);
@@ -357,16 +358,16 @@ void init()
             //80, 0, 0,
             //0, 80, 0,
             //0, 0, 80
-            5.0/(2.0*ball[i].mass*pow(kBallSize, 2)), 0.0, 0.0,
-            0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize, 2)), 0.0,
-            0.0, 0.0, 5.0/(2.0*ball[i].mass*pow(kBallSize, 2))
+            3.0/(1.0*ball[i].mass*pow(kBallSize, 2)), 0.0, 0.0,
+            0.0, 3.0/(1.0*ball[i].mass*pow(kBallSize, 2)), 0.0,
+            0.0, 0.0, 3.0/(1.0*ball[i].mass*pow(kBallSize, 2))
         };
     }
     ball[0].X = SetVector(0, 0, 0);
     ball[1].X = SetVector(0, 0, 0.5);
     ball[2].X = SetVector(0.0, 0, 1.0);
     ball[3].X = SetVector(0, 0, 1.5);
-    ball[0].P = SetVector(2, 0, 2);
+    ball[0].P = SetVector(1, 0, 1);
     ball[1].P = SetVector(0.3, 0, 0.3);
     ball[2].P = SetVector(0.5, 0, 0.2);
     ball[3].P = SetVector(0, 0, 1.00);

@@ -31,6 +31,7 @@ typedef struct SpriteRec
     FPoint speedDiff;
     FPoint averagePosition;
     FPoint avoidanceVector;
+    FPoint speedSetter;
 	struct SpriteRec *next;
 	
 	// Add custom sprite data here as needed

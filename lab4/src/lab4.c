@@ -13,6 +13,7 @@
 #endif
 
 #include <stdlib.h>
+#include <time.h>
 #include "../../common/LoadTGA.h"
 #include "SpriteLight.h"
 #include "../../common/GL_utilities.h"
@@ -23,6 +24,8 @@ float maxDistanceSq = 20000;
 float cohesionWeight = 0.002;
 float alignmentWeight = 0.01;
 float avoidanceWeight = 0.5;
+float randomWeight = 0.3;
+SpritePtr blackSheep;
 
 FPoint calculateAvoidance(SpritePtr i, SpritePtr j){
     FPoint avoidance;
@@ -96,6 +99,8 @@ void SpriteBehavior() // Din kod!
         i->speed.v += i->speedSetter.v;
         i = i->next;
     }
+    blackSheep->speed.h += (rand()/(float)RAND_MAX - 0.5)*randomWeight;
+    blackSheep->speed.v += (rand()/(float)RAND_MAX - 0.5)*randomWeight;
 
 
 }
@@ -164,6 +169,8 @@ void Key(unsigned char key,
 
 void Init()
 {
+
+    srand(time(NULL));
     TextureData *sheepFace, *blackFace, *dogFace, *foodFace;
 
     LoadTGATextureSimple("img/leaves.tga", &backgroundTexID); // Bakgrund
@@ -178,10 +185,11 @@ void Init()
     NewSprite(sheepFace, 250, 200, -1, 1.5);
     NewSprite(sheepFace, 200, 200, -1, 1.5);
     NewSprite(sheepFace, 100, 100, 1, 1.5);
-    NewSprite(sheepFace, 500, 200, -1, 1.5);
+    NewSprite(sheepFace, 500, 200, 1.5, 1);
     NewSprite(sheepFace, 200, 300, -1, 1.5);
-    NewSprite(sheepFace, 100, 300, -1, 1.5);
+    NewSprite(sheepFace, 100, 300, -1.5, 1.5);
     NewSprite(sheepFace, 300, 100, -1, 1.5);
+    blackSheep = NewSprite(blackFace, 400, 400, 1, 1.5);
 
 }
 

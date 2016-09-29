@@ -58,18 +58,31 @@ void SpriteBehavior() // Din kod!
         i->avoidanceVector = (FPoint){0,0};
         i->speedSetter = (FPoint){0,0};
 
+
         while (j != NULL){
-            if (i != j && pow(j->position.h - i->position.h, 2) + pow(j->position.v - i->position.v, 2) < maxDistanceSq ){
+            FPoint vector_between;
+            vector_between.h = j->position.h - i->position.h;
+            vector_between.v = j->position.v - i->position.v;
+
+            float length = sqrt(pow(vector_between.h, 2) + pow(vector_between.v, 2));
+            float speed_abs = sqrt(pow(i->speed.h, 2) + pow(i->speed.v, 2));
+
+            float angular_stuff = (vector_between.h/length)*i->speed.h/speed_abs + (vector_between.v/length)*i->speed.v/speed_abs;
+            
+            if (i != j && 
+                    pow(j->position.h - i->position.h, 2) + pow(j->position.v - i->position.v, 2) < maxDistanceSq && 
+                    angular_stuff > -0.5
+               ){
                 i->averagePosition.h += j->position.h;
                 i->averagePosition.v += j->position.v;
-                
+
                 i->speedDiff.h += j->speed.h - i->speed.h;
                 i->speedDiff.v += j->speed.v - i->speed.v;
-                
+
                 FPoint avoidance = calculateAvoidance(i, j);
                 i->avoidanceVector.h += avoidance.h;
                 i->avoidanceVector.v += avoidance.v;
-                
+
                 count += 1;
             }
             j = j->next;
